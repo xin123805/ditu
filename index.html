@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            position: relative;
+            margin: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+        
+        #mapImage {
+            display: block;
+            width: 800px;
+            height: 600px;
+            border: 1px solid #ccc;
+        }
+
+        .hotspot {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: transparent !important;
+        }
+
+        .hotspot:hover {
+            background: rgba(255, 0, 0, 0.3) !important;
+        }
+
+        .info-box {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            max-width: 300px;
+            font-family: Arial, sans-serif;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .info-box h3 {
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+
+        .info-box p {
+            line-height: 1.6;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .close-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img id="mapImage" src="D:\dongtu\Epic quadripartite kingdoms battlefield, four medieval kingdoms confront across mountains under crim....jpeg" alt="地图">
+        <div id="hotspots"></div>
+    </div>
+
+    <script>
+        // 热区配置（可自定义跳转链接）
+        const hotspots = [
+            { 
+                id: 1,
+                x: 0, 
+                y: 0, 
+                width: 360, 
+                height: 300,
+                url: "https://zh.wikipedia.org/wiki/%E7%83%AD%E5%8A%9B%E5%AD%A6%E7%AC%AC%E4%B8%80%E5%AE%9A%E5%BE%8B",
+                content: `<h3>热力学第一定律</h3>
+                         <p>能量守恒定律：ΔU = Q - W<br>
+                         点击查看详细解释</p>`
+            },
+            { 
+                id: 2,
+                x: 440, 
+                y: 0, 
+                width: 360, 
+                height: 300,
+                url: "https://zh.wikipedia.org/wiki/%E7%83%AD%E5%8A%9B%E5%AD%A6%E7%AC%AC%E4%BA%8C%E5%AE%9A%E5%BE%8B",
+                content: `<h3>热力学第二定律</h3>
+                         <p>熵增原理：△S ≥ 0<br>
+                         点击查看应用实例</p>`
+            },
+            { 
+                id: 3,
+                x: 0, 
+                y: 300, 
+                width: 360, 
+                height: 300,
+                url: "https://zh.wikipedia.org/wiki/%E7%83%AD%E5%8A%9B%E5%AD%A6%E7%AC%AC%E4%B8%89%E5%AE%9A%E5%BE%8B",
+                content: `<h3>热力学第三定律</h3>
+                         <p>绝对零度不可达原理<br>
+                         点击进入专题研究</p>`
+            },
+            { 
+                id: 4,
+                x: 440, 
+                y: 300, 
+                width: 360, 
+                height: 300,
+                url: "https://zh.wikipedia.org/wiki/%E7%BB%9F%E8%AE%A1%E5%8A%9B%E5%AD%A6",
+                content: `<h3>统计力学</h3>
+                         <p>点击访问在线课程</p>`
+            }
+        ];
+
+        // 图片加载完成后初始化热区
+        document.getElementById('mapImage').onload = function() {
+            createHotspots();
+        };
+
+        function createHotspots() {
+            const container = document.getElementById('hotspots');
+            container.innerHTML = '';
+
+            hotspots.forEach(hotspot => {
+                const div = document.createElement('div');
+                div.className = 'hotspot';
+                div.style.left = `${hotspot.x}px`;
+                div.style.top = `${hotspot.y}px`;
+                div.style.width = `${hotspot.width}px`;
+                div.style.height = `${hotspot.height}px`;
+                
+                // 点击跳转功能
+                div.addEventListener('click', () => {
+                    window.location.href = hotspot.url; // 当前窗口跳转
+                    // 如需新标签页打开，改为：window.open(hotspot.url, '_blank');
+                });
+
+                // 信息提示功能
+                div.addEventListener('mousemove', (e) => {
+                    showInfo(hotspot.content, e);
+                });
+
+                div.addEventListener('mouseleave', () => {
+                    hideInfo();
+                });
+
+                container.appendChild(div);
+            });
+        }
+
+        // 信息提示功能
+        let currentInfoBox = null;
+        function showInfo(content, event) {
+            if (!currentInfoBox) {
+                currentInfoBox = document.createElement('div');
+                currentInfoBox.className = 'info-box';
+                currentInfoBox.innerHTML = `
+                    ${content}
+                    <div class="close-btn" onclick="hideInfo()">×</div>
+                `;
+                document.body.appendChild(currentInfoBox);
+            }
+
+            // 定位优化
+            const x = event.clientX + 15;
+            const y = event.clientY + 15;
+            
+            const maxX = window.innerWidth - currentInfoBox.offsetWidth - 10;
+            const finalX = x > maxX ? maxX : x;
+            
+            const maxY = window.innerHeight - currentInfoBox.offsetHeight - 10;
+            const finalY = y > maxY ? maxY : y;
+
+            currentInfoBox.style.left = `${finalX}px`;
+            currentInfoBox.style.top = `${finalY}px`;
+        }
+
+        function hideInfo() {
+            if (currentInfoBox) {
+                currentInfoBox.remove();
+                currentInfoBox = null;
+            }
+        }
+    </script>
+</body>
+</html>
